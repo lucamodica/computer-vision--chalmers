@@ -1,11 +1,14 @@
-function [y, alpha] = psphere(x);
-    % takes a point as input and fla
-    % INPUT :
-    %  x     - matrix in which each column is a point.
-    % OUTPUT :
-    %  y     - result after normalization.
-    %  alpha - depth
-
-    [a, n] = size(x);
-    alpha = sqrt(sum(x .^ 2));
-    y = x ./ (ones(a, 1) * alpha);
+function y = pflat(x);
+  % takes as input an array of shape (m,n),
+  % representing n points in P^{m−1} in homogeneous 
+  % coordinates, and get an (m,n)-array containing 
+  % the same homogeneous points but where each point 
+  % is normalized so that its last coordinate is 1
+  % INPUT : 
+  %  x     - matrix in which each column is a point.
+  % OUTPUT :
+  %  y     - (m,n)-array containing the same homogeneous
+  %          points, but where each point is normalized 
+  %          so that its last coordinate is 1
+  [m, n] = size(x);
+  y = x ./ repmat(x(end,:), m, 1);
