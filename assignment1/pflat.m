@@ -1,4 +1,4 @@
-function y = pflat(x);
+function [y] = pflat(x)
   % takes as input an array of shape (m,n),
   % representing n points in P^{m−1} in homogeneous 
   % coordinates, and get an (m,n)-array containing 
@@ -10,5 +10,5 @@ function y = pflat(x);
   %  y     - (m,n)-array containing the same homogeneous
   %          points, but where each point is normalized 
   %          so that its last coordinate is 1
-  [m, n] = size(x);
-  y = x ./ repmat(x(end,:), m, 1);
+  y = x ./ x(end,:);
+end

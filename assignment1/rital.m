@@ -24,4 +24,4 @@ else
         [punkter(2,i)-2000*rikt(2,i) punkter(2,i)+2000*rikt(2,i)],st);
   end;
   slask=[];
-end;
+end
