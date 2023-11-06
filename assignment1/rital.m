@@ -10,9 +10,9 @@ function rital(linjer,st)
 % which divides each column of an mxn matrix by
 % its last element and outputs the obtained
 % normalized matrix.
-if nargin == 1,
+if nargin == 1
  st='-';
-end;
+end
 if size(linjer)==0,
   slask=[];
 else
@@ -21,7 +21,7 @@ else
   punkter=pflat(cross(rikt,linjer));
   for i=1:nn;
    plot([punkter(1,i)-2000*rikt(1,i) punkter(1,i)+2000*rikt(1,i)], ...
-        [punkter(2,i)-2000*rikt(2,i) punkter(2,i)+2000*rikt(2,i)],st);
+        [punkter(2, i) - 2000 * rikt(2, i) punkter(2, i) + 2000 * rikt(2, i)], st, 'linewidth', 2);
   end;
   slask=[];
 end

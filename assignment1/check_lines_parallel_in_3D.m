@@ -14,9 +14,9 @@ for i = 1:n
 end
 
 % Display the matrix of parallel pairs
-disp('Parallel? ')
+fprintf('Lines parallel? ')
 if all(all(parallelPairs)) 
-    disp('yes');
+    fprintf('yes\n');
 else 
-    disp('no');
+    fprintf('no\n');
 end
