@@ -1,4 +1,5 @@
-% Close all figure windows
+% Close all figure windows and clear the variables
+clear;
 close all;
 
 % Load and plot the images
@@ -22,6 +23,8 @@ load('data/compEx3.mat');
 % plot the principal axis starting from the camera center
 figure(3);
 plot_camera(P1, 2);
+text(C1(1), C1(2), C1(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
+text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
 hold on;
 plot_camera(P2, 5);
 
@@ -32,6 +35,8 @@ grid on;
 hold on;
 plot_camera(P1, 1);
 plot_camera(P2, 6);
+text(C1(1), C1(2), C1(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
+text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
 
 % Project the points in U into the cameras P1 and P2 and plot the result 
 % in the same plots as the images

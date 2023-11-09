@@ -20,3 +20,4 @@ C = pflat(null(P));
 
 % the principle axis corresponds with the first 3 components
 % of the last row, which is (0, 0, 1)
+p_axis = pflat(P(3 ,1:3).');
