@@ -26,7 +26,7 @@ plot_camera(P1, 2);
 text(C1(1), C1(2), C1(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
 text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
 hold on;
-plot_camera(P2, 5);
+plot_camera(P2, 8);
 
 % Plot the 3D-points in U and the camera centers in the same 3D plot
 figure(4)
