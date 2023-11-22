@@ -1,5 +1,5 @@
 function [sol] = estimate_camera_DLT(X, x)
-    M = cross(x, X);
+    M = DLT_matrix(X, x);
 
     % solve the system using SVD
     [U, S, V] = svd(M);
