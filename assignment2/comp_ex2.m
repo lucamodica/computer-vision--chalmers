@@ -128,10 +128,10 @@ title('3D model of view 2 and P2');
 [r2, q2] = rq(P2);
 K1 = r1;
 % normalize the last column of K1 (the principal point)
-K1(:, end) = K1(:, end) / K1(end, end);
+K1 = K1 / K1(end, end);
 K2 = r2;
 % normalize the last column of K2 (the principal point)
-K2(:, end) = K2(:, end) / K2(end, end);
+K2 = K2 / K2(end, end);
 
 % test: plot the principal points of each K on the respective views
 figure;
