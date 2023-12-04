@@ -5,6 +5,7 @@ load("E.mat");
 load("data/compEx1data.mat");
 load("data/compEx2data.mat");
 im2 = imread("data/kronan2.JPG");
+im1 = imread("data/kronan1.JPG");
 
 % compute the 4 cameras
 cameras = extract_P_from_E(E);
@@ -68,19 +69,38 @@ P1u = K * P1;
 
 % plot the image points and the projected 3D-points in the same figure
 figure;
-subplot(1, 2, 1);
-x2tP1u = P1u * X2t;
-plot(x{2}(1, :), x{2}(2, :), 'r.');
+x2tP1u = pflat(P1u * X2t);
+imagesc(im1);
 hold on;
+plot(x{1}(1, :), x{1}(2, :), 'r.');
 plot(x2tP1u(1, :), x2tP1u(2, :), 'bO');
+title("image points and the projected points from the selected camera (image1)");
 
-subplot(1, 2, 2);
-x2tP2u = P2u * X2t;
-plot(x{2}(1, :), x{2}(2, :), 'r.');
+figure;
+x2tP2u = pflat(P2u * X2t);
+imagesc(im2);
 hold on;
+plot(x{2}(1, :), x{2}(2, :), 'r.');
 plot(x2tP2u(1, :), x2tP2u(2, :), 'bO');
+title("image points and the projected points from the selected camera (image2)");
+
+% overall, the error looks small for the alignment between the points
+% of the images and the projection of the points retrieved from the
+% computed camera
 
 % 3D plot
 figure;
 plot3(X2t(1, :), X2t(2, :), X2t(3, :), 'b.');
+hold on;
+[C1, principal_ax1] = camera_center_and_axis(P1u);
+plot_camera(P1u, 3);
+text(C1(1), C1(2), C1(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
+[C2, principal_ax2] = camera_center_and_axis(P2u);
+plot_camera(P2u, 3);
+text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
+title("3D reconstruction of the building with the 2 cameras");
+
+% the 3D reconstruction looks like I expected it to, reflecting the
+% building in the 2D images, with the 2 cameras pointing in the corrected
+% directions
 

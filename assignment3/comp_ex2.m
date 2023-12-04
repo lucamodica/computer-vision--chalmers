@@ -28,6 +28,7 @@ disp("Determinant of forced E: " + det(E));
 % are roughly fufilled, from a plot
 figure;
 plot(diag(x2n'*E*x1n));
+title("Epipolar constraints check (= 0, approximating)");
 
 % comoute F and the epipolar lines
 F = convert_E_to_F(E, K, K);
@@ -46,6 +47,7 @@ imagesc(im2);
 hold on;
 rital(l(:, idxs), "b");
 plot(samples_x2(1, :), samples_x2(2, :), '.', 'MarkerSize', 9, 'Color', "r");
+title("Points sample with the epipolar lines");
 % the points are close to the corresponding epipolar lines.
 
 % Computes all the the distances between the points 
@@ -57,6 +59,7 @@ ylabel('number of points');
 
 % mean distance (aka mean epipolar errors)
 disp("mean distance (aka mean epipolar errors): " + mean(compute_epipolar_errors(F, x{1}, x{2})));
+title("Epipolar errors histogram");
 % compared to the computer exercise 1, we have a much bigger mean distance,
 % thus a much bigger error
 

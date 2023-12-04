@@ -28,3 +28,5 @@ disp(x1_P2.' * F * x1_P1);
 x2_P1 = P1 * X2;
 x2_P2 = P2 * X2;
 disp(x2_P2.' * F * x2_P1);
+
+C2 = null(P2);

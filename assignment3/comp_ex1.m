@@ -5,10 +5,10 @@ load("data/compEx1data.mat");
 im1 = imread("data/kronan1.JPG");
 im2 = imread("data/kronan2.JPG");
 
-N1 = standardization_mat(x{1});
-N2 = standardization_mat(x{2});
-% N1 = eye(3, 3);
-% N2 = eye(3, 3);
+% N1 = standardization_mat(x{1});
+% N2 = standardization_mat(x{2});
+N1 = eye(3, 3);
+N2 = eye(3, 3);
 
 x1n = N1 * x{1};
 x2n = N2 * x{2};
@@ -32,6 +32,7 @@ disp("Determinant of forced F: " + det(Fn));
 % are roughly fufilled, from a plot
 figure;
 plot(diag(x2n'*Fn*x1n));
+title("Epipolar constraints check (= 0, approximating)");
 
 % Compute the un-normalized fundamental matrix F
 F = N2.' * Fn * N1;
@@ -53,6 +54,7 @@ imagesc(im2);
 hold on;
 rital(l(:, idxs), "b");
 plot(samples_x2(1, :), samples_x2(2, :), '.', 'MarkerSize', 9, 'Color', "r");
+title("Points sample with the epipolar lines");
 % the points are close to the corresponding epipolar lines.
 
 % Computes all the the distances between the points 
@@ -61,6 +63,7 @@ figure;
 histogram(compute_epipolar_errors(F, x{1}, x{2}), 100);
 xlabel('epipolar errors');
 ylabel('number of points');
+title("Epipolar errors histogram");
 
 % mean distance (aka mean epipolar errors)
 disp("mean distance (aka mean epipolar errors): " + mean(compute_epipolar_errors(F, x{1}, x{2})));
