@@ -5,7 +5,7 @@ function [bestE, bestInliers] = estimate_E_robust(K, x1, x2)
 
     bestInliersCount = 0;
 
-    for iteration = 1:1000
+    for iteration = 1:10000
         % sample 8 correspondances, the minimum
         % required by the 8-point algorithm
         idxs = randperm(size(x1, 2), 15);
