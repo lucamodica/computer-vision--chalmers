@@ -12,10 +12,10 @@ function [P2, X] = find_best_P2(E, x1n, x2n, P1, K, inliersIdxs)
         xtP1 = P1 * Xt;
         xtP2 = cameras{i} * Xt;
 
-        % check for 90% inliers in front of both cameras and
+        % check for 95% inliers in front of both cameras and
         % if it's a new best camera
         frontCount = sum(xtP1(3,:) > 0) + sum(xtP2(3,:) > 0);
-        if frontCount > 0.9 * max_vis && frontCount > bestFrontCount
+        if frontCount > bestFrontCount
             bestFrontCount = frontCount;
             X = Xt;
             P2 = cameras{i};

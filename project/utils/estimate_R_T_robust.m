@@ -81,7 +81,7 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
                     % check for loop exit condition, setting the
                     % related flag in case of number of iteration
                     % required reached
-                    if itersE <= itersCount 
+                    if itersE + 5000 <= itersCount 
                         breakE = true; 
                     end
                 end
@@ -148,7 +148,7 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
                     % check for loop exit condition, setting the
                     % related flag in case of number of iteration
                     % required reached
-                    if itersH <= itersCount 
+                    if itersH + 5000 <= itersCount 
                         breakH = true;
                     end
                 end
@@ -165,6 +165,7 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
         end
     end
 
+    disp("number of iterations: " + itersCount);
     disp("number of inliers from E: " + sum(inlE));
     disp("number of inliers from H: " + sum(inlH));
 
