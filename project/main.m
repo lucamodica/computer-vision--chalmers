@@ -21,7 +21,7 @@ rng(42);
 % retrieve and return information of the selected dataset
 % (replace the get_dataset_info parameter with the number
 % of the dataset)
-dataset = 5;
+dataset = 9;
 [K, img_names, init_pair, pixel_threshold] = get_dataset_info(dataset);
     
 % save the images in a cell struct
@@ -106,7 +106,7 @@ x1 = [xa; ones(1, length(xa))];
 x2 = [xb; ones(1, length(xb))];
 save("desc_X", "d1");
 % estimating best R and T of cameras of the initial pair
-[relR, relT, ~, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
+[relR, relT, initInlIdx, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
 % Filter 3D points excessively far away from the center of gravity
 disp("number of points before the filter: " + length(X));
 X = filter_far_3d_points(X);
@@ -116,20 +116,38 @@ X = absRs{init_pair(1)}.' * X(1:3, :);
 X = filter_far_3d_points(X);
 X = [X; ones(1, length(X))];
 
+
 desc_X = d1;
 descriptors = cell(1, length(imgs));
+absTs = cell(1, length(imgs));
 for i = 1:length(imgs)
     [fi, descriptors{i}] = vl_sift( single(rgb2gray(imgs{i})));
-    [matches_2d_3d, scores] = vl_ubcmatch(descriptors{i}, desc_X);
+    matches_2d_3d = vl_ubcmatch(descriptors{i}, desc_X);
+    
+    inliersIdx = find(initInlIdx);
 
-    xi = fi(1:2, matches_2d_3d(1 ,:));
+    % Filter matches where features in the initial image were inliers 
+    % from the previous estimation
+    inlierMatches = matches_2d_3d(:, ismember(matches_2d_3d(2, :), inliersIdx));
+    % Now 'inlierMatches' contains only the matches where the second 
+    % feature was an inlier in the initial pair
+
+    % Map the inlier matches to corresponding 3D points
+    % This assumes that 'inliersInitial' is aligned with 
+    % 'initial3DPoints' indices
+    [~, loc] = ismember(inlierMatches(2, :), inliersIdx);
+    corrX = X(:, loc);
+
+    % Remove any zeros that might have crept in due to non-inliers
+    corrX = corrX(:, all(corrX));
+
+    xi = fi(1:2, inlierMatches(1, :));
     xi = [xi; ones(1, length(xi))];
-    disp(length(xi));
-    disp(length(X));
 
-    Pi = estimate_T_robust(inv(K) * xi, X, pixel_threshold);
+    focal_length = K(1,1);
+    Pi = estimate_T_robust(inv(K) \ xi, corrX, 3 * pixel_threshold / K(1,1));
+    absTs{i} = Pi(:, end);
 end
-
 
 
 

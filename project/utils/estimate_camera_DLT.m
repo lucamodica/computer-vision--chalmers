@@ -1,4 +1,4 @@
-function P = estimate_camera_DLT(X, x)
+function P = estimate_camera_DLT(xs, Xs)
     % Number of points
     numPoints = size(Xs, 2);
     M = zeros(2 * numPoints, 12);
@@ -17,5 +17,5 @@ function P = estimate_camera_DLT(X, x)
     end
 
     % solve the system using SVD
-    [U, S, V] = svd(M);
+    [~, ~, V] = svd(M);
     P = reshape(V(:, end), [3 4]);
