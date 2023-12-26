@@ -5,7 +5,7 @@ clc;
 clear;
 
 % debugging flag
-debug_mode = false;
+debug_mode = true;
 
 % add all the function in the utls folder to the working path
 addpath utils/;
@@ -21,7 +21,7 @@ rng(42);
 % retrieve and return information of the selected dataset
 % (replace the get_dataset_info parameter with the number
 % of the dataset)
-dataset = 9;
+dataset = 2;
 [K, img_names, init_pair, pixel_threshold] = get_dataset_info(dataset);
     
 % save the images in a cell struct
@@ -29,7 +29,7 @@ imgs = cellfun(@(name) imread(name), img_names, 'UniformOutput', false);
 
 % check if a file with the absolute rotations and relative orientation 
 % already exists, and in case load them (for debugging purposes)
-if debug_mode && exist("abs_rotation_" + dataset + ".mat", "file") ...
+if exist("abs_rotation_" + dataset + ".mat", "file") ...
     && exist("rel_orientation_" + dataset + ".mat", "file") ...
 
     load("rel_orientation_" + dataset + ".mat");
@@ -42,8 +42,8 @@ else
     relTs = cell(1, length(imgs)-1);
     for i = 1:length(imgs)-1
         % retrieve and save points using SIFT and the pair of images
-        [f1 d1] = vl_sift( single(rgb2gray(imgs{i}))); 
-        [f2 d2] = vl_sift( single(rgb2gray(imgs{i+1}))); 
+        [f1, d1] = vl_sift( single(rgb2gray(imgs{i}))); 
+        [f2, d2] = vl_sift( single(rgb2gray(imgs{i+1}))); 
         matches = vl_ubcmatch(d1,d2);
         xa = f1(1:2, matches (1 ,:)); 
         xb = f2(1:2, matches (2 ,:));
@@ -57,7 +57,7 @@ else
     
         % plot for checking the correctness of the current 
         % relative pose (debug mode)
-        % if debug_mode
+        if debug_mode
             P1 = [
                 1 0 0 0;
                 0 1 0 0;
@@ -76,7 +76,7 @@ else
             plot_camera(P2, 1);
             text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
             disp("Relative oriantation between camera " + i + " and " + num2str(i+1) + " computed!");
-        % end
+        end
     end
     save("rel_orientation_" + dataset, "relRs", "relTs");
     disp("done!");
@@ -97,8 +97,8 @@ end
 % construct initial 3D points from an initial image pair
 disp("construct initial 3D points from the initial image pair " + init_pair(1) + " & " + init_pair(2));
 % retrieve and save points using SIFT and the pair of images
-[f1 d1] = vl_sift( single(rgb2gray(imgs{init_pair(1)}))); 
-[f2 d2] = vl_sift( single(rgb2gray(imgs{init_pair(2)}))); 
+[f1, d1] = vl_sift( single(rgb2gray(imgs{init_pair(1)}))); 
+[f2, d2] = vl_sift( single(rgb2gray(imgs{init_pair(2)}))); 
 matches = vl_ubcmatch(d1,d2);
 xa = f1(1:2, matches (1 ,:)); 
 xb = f2(1:2, matches (2 ,:));
@@ -149,8 +149,20 @@ for i = 1:length(imgs)
     absTs{i} = Pi(:, end);
 end
 
+% computing each camera
+Ps = cellfun(@(R, T) K * [R, T], absRs, absTs, 'UniformOutput', false);
+% test display them
+figure;
+X = absRs{1} * X(1:3, :);
+plot3(X(1, :), X(2, :), X(3, :), 'b.');
+hold on;
+for i = 1:length(Ps)
+    [C, ~] = plot_camera(Ps{i}, 2);
+    label = "C" + i;
+    text(C(1), C(2), C(3), "C" + i, 'FontSize', 12, 'HorizontalAlignment', 'right');
+end
 
-
+ 
 
 
 
