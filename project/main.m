@@ -21,7 +21,7 @@ rng(42);
 % retrieve and return information of the selected dataset
 % (replace the get_dataset_info parameter with the number
 % of the dataset)
-dataset = 2;
+dataset = 9;
 [K, img_names, init_pair, pixel_threshold] = get_dataset_info(dataset);
     
 % save the images in a cell struct
@@ -31,15 +31,19 @@ imgs = cellfun(@(name) imread(name), img_names, 'UniformOutput', false);
 % already exists, and in case load them (for debugging purposes)
 if exist("abs_rotation_" + dataset + ".mat", "file") ...
     && exist("rel_orientation_" + dataset + ".mat", "file") ...
+    && exist("2d_points_pair_" + dataset + ".mat", "file") ...
 
     load("rel_orientation_" + dataset + ".mat");
     load("abs_rotation_" + dataset + ".mat");
-    disp("Already computed absolute rotations found and loaded!");
+    load("2d_points_pair_" + dataset + ".mat");
+    disp("Absolute rotations and points to be triangulated already found and loaded!");
 else
     % Calculate relative orientations between images (i) and (i+1)
     disp("Computing relative orientations between images (i) and (i+1)...");
     relRs = cell(1, length(imgs)-1);
     relTs = cell(1, length(imgs)-1);
+    inlsI = cell(1, length(imgs)-1);
+    inlsIplus1 = cell(1, length(imgs)-1);
     for i = 1:length(imgs)-1
         % retrieve and save points using SIFT and the pair of images
         [f1, d1] = vl_sift( single(rgb2gray(imgs{i}))); 
@@ -51,8 +55,9 @@ else
         x2 = [xb; ones(1, length(xb))];
         
         % estimating best R and T of the the P2 camera
-        % P_{i, 2} = (R_{i, i+1}, T_{i, i+1})
-        [relRs{i}, relTs{i}, ~, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
+        [relRs{i}, relTs{i}, inls, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
+        inlsI{i} = x1(:, inls);
+        inlsIplus1{i} = x2(:, inls);
         X = filter_far_3d_points(X);
     
         % plot for checking the correctness of the current 
@@ -79,6 +84,7 @@ else
         end
     end
     save("rel_orientation_" + dataset, "relRs", "relTs");
+    save("2d_points_pair_" + dataset + ".mat", "inlsI", "inlsIplus1");
     disp("done!");
 
     % Upgrade to absolute rotations R_i
@@ -107,10 +113,7 @@ x2 = [xb; ones(1, length(xb))];
 save("desc_X", "d1");
 % estimating best R and T of cameras of the initial pair
 [relR, relT, initInlIdx, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
-% Filter 3D points excessively far away from the center of gravity
-disp("number of points before the filter: " + length(X));
-X = filter_far_3d_points(X);
-disp("number of points adfter the filter: " + length(X));
+% Filter 3D points excessively far away from the center of gravity and
 % bring X to world coordinates and filter out the outliers
 X = absRs{init_pair(1)}.' * X(1:3, :);
 X = filter_far_3d_points(X);
@@ -151,16 +154,28 @@ end
 
 % computing each camera
 Ps = cellfun(@(R, T) K * [R, T], absRs, absTs, 'UniformOutput', false);
-% test display them
+
+% triangulate point and display them in the 3D plots alongside the cameras
+Xs = [];
+for i = 1:length(imgs)-1
+    Xs = [Xs, triangulate_3D_point_DLT(inlsI{i}, inlsIplus1{i}, Ps{i}, Ps{i+1})];
+end
+
+% test display everything
+Xs = pflat(filter_far_3d_points(Xs));
 figure;
-X = absRs{1} * X(1:3, :);
-plot3(X(1, :), X(2, :), X(3, :), 'b.');
+plot3(Xs(1, :), Xs(2, :), Xs(3, :), 'b.');
 hold on;
 for i = 1:length(Ps)
-    [C, ~] = plot_camera(Ps{i}, 2);
+    [C, ~] = plot_camera(Ps{i}, 1);
     label = "C" + i;
     text(C(1), C(2), C(3), "C" + i, 'FontSize', 12, 'HorizontalAlignment', 'right');
 end
+axis equal;
+grid on;
+xlabel('X');
+ylabel('Y');
+zlabel('Z');
 
  
 
