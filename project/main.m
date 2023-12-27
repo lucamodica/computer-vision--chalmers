@@ -21,7 +21,7 @@ rng(42);
 % retrieve and return information of the selected dataset
 % (replace the get_dataset_info parameter with the number
 % of the dataset)
-dataset = 9;
+dataset = 3;
 [K, img_names, init_pair, pixel_threshold] = get_dataset_info(dataset);
     
 % save the images in a cell struct
@@ -56,15 +56,15 @@ else
         
         % estimating best R and T of the the P2 camera
         [relRs{i}, relTs{i}, inls, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
-        inlsI{i} = x1(:, inls);
-        inlsIplus1{i} = x2(:, inls);
+        inlsI{i} = inv(K) * x1(:, inls);
+        inlsIplus1{i} = inv(K) * x2(:, inls);
         X = filter_far_3d_points(X);
     
         % plot for checking the correctness of the current 
         % relative pose (debug mode)
         if debug_mode
             P1 = [
-                1 0 0 0;
+                1 0 0 0; 
                 0 1 0 0;
                 0 0 1 0
             ];
@@ -148,34 +148,50 @@ for i = 1:length(imgs)
     xi = [xi; ones(1, length(xi))];
 
     focal_length = K(1,1);
-    Pi = estimate_T_robust(inv(K) \ xi, corrX, 3 * pixel_threshold / K(1,1));
-    absTs{i} = Pi(:, end);
+    Pi = estimate_T_robust(inv(K) * xi, corrX, 3 * pixel_threshold / K(1,1));
+    Pin = inv(K) * Pi;
+    absTs{i} = Pin(:, end);
 end
 
 % computing each camera
-Ps = cellfun(@(R, T) K * [R, T], absRs, absTs, 'UniformOutput', false);
+Ps = cellfun(@(R, T) [R, T], absRs, absTs, 'UniformOutput', false);
 
-% triangulate point and display them in the 3D plots alongside the cameras
+% triangulate point for each pair (i, i+1) and display them in the 3D plots alongside the cameras
 Xs = [];
 for i = 1:length(imgs)-1
-    Xs = [Xs, triangulate_3D_point_DLT(inlsI{i}, inlsIplus1{i}, Ps{i}, Ps{i+1})];
-end
+    X = pflat(triangulate_3D_point_DLT(inlsI{i}, inlsIplus1{i}, Ps{i}, Ps{i+1}));
+    Xs = [Xs, X];
 
-% test display everything
-Xs = pflat(filter_far_3d_points(Xs));
-figure;
-plot3(Xs(1, :), Xs(2, :), Xs(3, :), 'b.');
-hold on;
-for i = 1:length(Ps)
+    % test display
+    X = filter_far_3d_points(Xs);
+    figure;
+    plot3(Xs(1, :), Xs(2, :), Xs(3, :), 'b.');
+    hold on;
     [C, ~] = plot_camera(Ps{i}, 1);
     label = "C" + i;
     text(C(1), C(2), C(3), "C" + i, 'FontSize', 12, 'HorizontalAlignment', 'right');
+    grid on;
+    xlabel('X');
+    ylabel('Y');
+    zlabel('Z');
+    hold off;
 end
-axis equal;
-grid on;
-xlabel('X');
-ylabel('Y');
-zlabel('Z');
+
+% test display everything
+% Xs = filter_far_3d_points(Xs);
+% figure;
+% plot3(Xs(1, :), Xs(2, :), Xs(3, :), 'b.');
+% hold on;
+% for i = 1:length(Ps)
+%     [C, ~] = plot_camera(Ps{i}, 1);
+%     label = "C" + i;
+%     text(C(1), C(2), C(3), "C" + i, 'FontSize', 12, 'HorizontalAlignment', 'right');
+% end
+% % axis equal;
+% grid on;
+% xlabel('X');
+% ylabel('Y');
+% zlabel('Z');
 
  
 
