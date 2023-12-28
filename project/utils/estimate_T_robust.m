@@ -1,14 +1,15 @@
-function best_P = estimate_T_robust(xs, Xs, inlier_threshold)
+function best_P = estimate_T_robust(xs, Xs, R, inlier_threshold)
     num_iterations = 1000;
     best_inlier_count = 0;
     best_P = [];
     
     for i = 1:num_iterations
-        indices = randperm(size(xs, 1), 2);
+        indices = randperm(size(xs, 2), 2);
         xs_sample = xs(:, indices);
         Xs_sample = Xs(:, indices);
 
-        P = estimate_camera_DLT(xs_sample, Xs_sample); 
+        T = estimate_T_DLT(xs_sample, Xs_sample, R);
+        P = [R, T];
         inliers = compute_reprojection_error(P, xs, Xs) < inlier_threshold^2;
 
         % Update the best model if the current one has more inliers

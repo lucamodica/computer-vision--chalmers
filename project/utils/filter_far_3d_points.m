@@ -10,4 +10,6 @@ function filtered_X = filter_far_3d_points(X)
     
     % Filter points that are excessively far away from the center of gravity
     filtered_X = X(distances <= threshold,:);
+
+    disp("Points filtered: " + num2str(length(X) - length(filtered_X)));
 end
