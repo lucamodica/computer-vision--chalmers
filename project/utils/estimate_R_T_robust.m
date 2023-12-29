@@ -6,6 +6,10 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
         0 0 1 0
     ];
 
+    % normalize points
+    x1 = K \ x1;
+    x2 = K \ x2;
+
     focal_length = K(1, 1);
 
     % define thresholds, re-scaled by the focal length
@@ -69,7 +73,7 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
 
                 % update the values if the essential matrix
                 % is acceptable
-                if P ~= [zeros(3, 4)]
+                if P ~= zeros(3, 4)
                     % update iter count and number of iters for E
                     epsE = sum(inlE) / length(x1);
                     itersE = ceil(log(1-a)/log(1-epsE^sE));
@@ -122,19 +126,17 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
                 if sum(inliersE1) > sum(inliersE2)
                     bestE = E1;
                     inlBestE = inliersE1;
-                    % disp("new best inliers count is from E1: " + inliersE1);
                 else
                     bestE = E2;
                     inlBestE = inliersE2;
-                    % disp("new best inliers count is from E2: " + inliersE2);
                 end
     
                 % extract R and T from E
-                [P, X_H_curr] = find_best_P2(bestE, x1, x2, P1, K, inlH);
+                [P, X_H_curr] = find_best_P2(bestE, x1, x2, P1, K, inlBestE);
 
                 % if the camera is an eligible one,
                 % R, T and the epsilon will be updated
-                if P ~= [zeros(3, 4)]
+                if P ~= zeros(3, 4)
                     X_H = X_H_curr;
                     inlH = inlBestE;
 

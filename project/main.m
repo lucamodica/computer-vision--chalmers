@@ -21,7 +21,7 @@ rng(42);
 % retrieve and return information of the selected dataset
 % (replace the get_dataset_info parameter with the number
 % of the dataset)
-dataset = 1;
+dataset = 2;
 [K, img_names, init_pair, pixel_threshold] = get_dataset_info(dataset);
     
 % save the images in a cell struct
@@ -55,9 +55,9 @@ else
         x2 = [xb; ones(1, length(xb))];
         
         % estimating best R and T of the the P2 camera
-        [relRs{i}, relTs{i}, inls, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
-        inlsI{i} = inv(K) * x1(:, inls);
-        inlsIplus1{i} = inv(K) * x2(:, inls);
+        [relRs{i}, relTs{i}, inls, X] = estimate_R_T_robust(K, x1, x2, pixel_threshold);
+        inlsI{i} = K \ x1(:, inls);
+        inlsIplus1{i} = K \ x2(:, inls);
         X = filter_far_3d_points(X);
     
         % plot for checking the correctness of the current 
@@ -74,9 +74,9 @@ else
             figure;
             plot3(X(1, :), X(2, :), X(3, :), 'b.');
             hold on;
-            [C1, ~] = camera_center_and_axis(P1u);
+            [C, ~] = camera_center_and_axis(P1u);
             plot_camera(P1, 1);
-            text(C1(1), C1(2), C1(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
+            text(C(1), C(2), C(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
             [C2, ~] = camera_center_and_axis(P2u);
             plot_camera(P2, 1);
             text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
@@ -112,7 +112,7 @@ x1 = [xa; ones(1, length(xa))];
 x2 = [xb; ones(1, length(xb))];
 save("desc_X", "d1");
 % estimating best R and T of cameras of the initial pair
-[relR, relT, initInlIdx, X] = estimate_R_T_robust(K, inv(K) * x1, inv(K) * x2, pixel_threshold);
+[relR, relT, initInlIdx, X] = estimate_R_T_robust(K, x1, x2, pixel_threshold);
 % Filter 3D points excessively far away from the center of gravity and
 % bring X to world coordinates and filter out the outliers
 X = absRs{init_pair(1)}.' * X(1:3, :);
@@ -150,10 +150,23 @@ for i = 1:length(imgs)
     xin = pflat(K \ [xi; ones(1, length(xi))]);
 
     focal_length = K(1,1);
-    Pi = estimate_T_robust(xin, corrX, absRs{i}, pixel_threshold / K(1,1));
+    Pi = estimate_T_robust(xin, corrX, absRs{i}, 10 * pixel_threshold / K(1,1));
     absTs{i} = Pi(:, end);
     Ps{i} = Pi;
 end
+
+% test plotting init 3d points and all the cameras
+figure;
+plot3(X(1, :), X(2, :), X(3, :), 'b.');
+grid on;
+hold on;
+for i = 1:length(Ps)
+    P = K * Ps{i};
+    [C, ~] = camera_center_and_axis(P);
+    plot_camera(P, 1);
+    text(C(1), C(2), C(3), "C" + num2str(i), 'FontSize', 12, 'HorizontalAlignment', 'right');
+end
+
 
 % triangulate point for each pair (i, i+1) and display them in the 3D plots alongside the cameras
 Xs = [];

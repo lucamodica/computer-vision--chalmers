@@ -16,5 +16,5 @@ function [sol] = estimate_homography_DLT(x1, x2)
     end
 
     % solve the system using SVD
-    [U, S, V] = svd(M);
+    [~, ~, V] = svd(M);
     sol = V(:, end);

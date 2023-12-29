@@ -1,10 +1,7 @@
 function T = estimate_T_DLT(xs, Xs, R)
     % Number of correspondences
     n = size(xs, 2);
-    
-    % Construct the matrix A for the equations
     M = [];
-    b = [];
     
     for i = 1:n
         % Get the i-th correspondence

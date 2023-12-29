@@ -1,10 +1,9 @@
 function [P2, X] = find_best_P2(E, x1n, x2n, P1, K, inliersIdxs)
     % compute the 4 cameras to choose P2
     cameras = extract_P_from_E(E);
-    P2 = [zeros(3, 4)];
+    P2 = zeros(3, 4);
     X = [];
     bestFrontCount = 0;
-    max_vis = sum(inliersIdxs) * 2; % we need to check for both cameras
 
     for i = 1:4
         Xt = pflat(triangulate_3D_point_DLT(x1n, x2n, P1, cameras{i}));

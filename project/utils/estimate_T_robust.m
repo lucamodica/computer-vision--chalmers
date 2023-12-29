@@ -1,5 +1,5 @@
 function best_P = estimate_T_robust(xs, Xs, R, inlier_threshold)
-    num_iterations = 1000;
+    num_iterations = 2000;
     best_inlier_count = 0;
     best_P = [];
     
