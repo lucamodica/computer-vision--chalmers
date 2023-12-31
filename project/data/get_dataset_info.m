@@ -93,6 +93,11 @@ function [K, img_names, init_pair, pixel_threshold] = get_dataset_info(dataset)
     % Add your optional datasets...
   end
 
-  focal_length = max(im_width, im_height) * focal_length_35mm / 35.0
-  K = [focal_length 0 im_width/2; 0 focal_length im_height/2; 0 0 1]
+  focal_length = max(im_width, im_height) * focal_length_35mm / 35.0;
+  disp("Focal length: ");
+  disp(focal_length);
+
+  K = [focal_length 0 im_width/2; 0 focal_length im_height/2; 0 0 1];
+  disp("Intrinsic matrix K: ");
+  disp(K);
 end

@@ -1,7 +1,8 @@
-function best_P = estimate_T_robust(xs, Xs, R, inlier_threshold)
+function best_T = estimate_T_robust(xs, Xs, R, inlier_threshold)
     num_iterations = 2000;
     best_inlier_count = 0;
-    best_P = [];
+    best_T = [];
+    best_inliers = [];
     
     for i = 1:num_iterations
         indices = randperm(size(xs, 2), 2);
@@ -13,27 +14,21 @@ function best_P = estimate_T_robust(xs, Xs, R, inlier_threshold)
         inliers = compute_reprojection_error(P, xs, Xs) < inlier_threshold^2;
 
         % Update the best model if the current one has more inliers
-        if length(inliers) > best_inlier_count
-            best_inlier_count = length(inliers);
+        if sum(inliers) > best_inlier_count
+            best_inlier_count = sum(inliers);
             best_inliers = inliers;
-            best_P = P;
+            best_T = P(:, end);
         end
     end
     
     % Optional: Refine the pose with all inliers
     if ~isempty(best_inliers)
-        % [best_rotation, best_translation] = refinePosePnP(xs(best_inliers, :), Xs(best_inliers, :), best_P);
-        % best_P = P;
+        % refining T using LM method
+        best_T = refine_T(best_T, R, xs, Xs);
     else
-        best_P = [];
-        warning('RANSAC was unable to find a good pose with the given inlier threshold');
+        best_T = [];
+        warning(['RANSAC was unable to find a good pose with the given ' ...
+            'inlier threshold']);
     end
 end
-
-% Placeholder function for pose refinement (to be replaced with actual implementation)
-% function [rotation, translation] = refinePosePnP(xs, Xs, initial_P)
-%     % This function should refine the pose given the inliers and an initial estimate.
-%     % It can use non-linear optimization functions like 'lsqnonlin'.
-%     % [rotation, translation] = some_refinement_procedure(xs, Xs, initial_P);
-% end
 

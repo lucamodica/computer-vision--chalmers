@@ -1,71 +1,27 @@
-function [totErr, totErrLM, medianErr, medianErrLM] = refine_T(sigmaX, sigmax)
-    load("data/compEx3data.mat");
+function T = refine_T(T_init, R, x, X)
+    % init
+    T = T_init;
+    iters = 50;
+    mu = 0.01;
 
-    % 3D plot before LM
-    figure;
-    plot3(X(1, :), X(2, :), X(3, :), 'b.');
-    hold on;
-    title("3D reconstruction before and after LM");
-    
-    % Add the mean-zero gaussian noise to the 3D and 2D points
-    % (set std = 0, to not add any noise)
-    X = X + arrayfun(@(x) normrnd(0,sigmaX), X);
-    x{1} = x{1} + arrayfun(@(x) normrnd(0,sigmax), x{1});
-    x{2} = x{2} + arrayfun(@(x) normrnd(0,sigmax), x{2});
-    
-    errs = ones(1, length(X));
-    new_errs = ones(1, length(X));
-    Xr = [];
-     for j = 1:length(X)
-         Xj = X(:, j);
-         x1j = x{1}(1:2, j);
-         x2j = x{2}(1:2, j);
-        
-         % compute first reprojection error
-         [err, res] = ComputeReprojectionError(P{1}, P{2}, Xj, x1j, x2j);
-         errs(j) = err;
-    
-         % init mu
-         mu = 0.01;
-    
-         % iteratively adjust the error
-         for i = 1:50
-             [r, J] = LinearizeReprojErr(P{1}, P{2}, Xj, x1j, x2j);
-             dj = ComputeUpdate(r, J, mu);
-    
-             [new_err, res] = ComputeReprojectionError(P{1}, P{2}, Xj + dj, x1j, x2j);
-             if new_err < err
-                 Xj = Xj + dj;
-                 mu = mu / 10;
-                 err = new_err;
-             else
-                mu = mu * 10;
-            end
-         end
-         new_errs(j) = new_err;
-         Xr(:, j) = pflat(Xj);
-     end
-    disp(sum(errs));
-    disp(sum(new_errs));
-    disp(median(errs));
-    disp(median(new_errs));
-    totErr = sum(errs);
-    totErrLM = sum(new_errs);
-    medianErr = median(errs);
-    medianErrLM = median(new_errs);
-    
-    
-    % 3D plot before LM
-    plot3(Xr(1, :), Xr(2, :), Xr(3, :), 'r.');
-    [C1, ~] = camera_center_and_axis(P{1});
-            plot_camera(P{1}, 0.4);
-            text(C1(1), C1(2), C1(3), 'C1', 'FontSize', 12, 'HorizontalAlignment', 'right');
-            [C2, ~] = camera_center_and_axis(P{2});
-            plot_camera(P{2}, 0.4);
-            text(C2(1), C2(2), C2(3), 'C2', 'FontSize', 12, 'HorizontalAlignment', 'right');
-    legend("3D point before LM", "3D point after LM");
-    
-    
-    % what we observe is that, if the errors are pretty close,
-    % we obtained really close 3D plot as well
+    % compute first reprojection error, among all the points
+    err = sum(compute_reprojection_error([R, T], x, X));
+    disp("Initial reprojection error: " + err);
+
+    % iteratively refine T
+    for i = 1:iters
+        [r, J] = linearize_reproj_error_wrt_T(R, T, x, X);
+        dT = compute_update_LM(r, J, mu);
+        new_err = sum(compute_reprojection_error([R, T + dT], x, X));
+
+        if new_err < err
+            T = T + dT;
+            mu = mu / 10;
+            err = new_err;
+        else
+            mu = mu * 10;
+        end
+    end
+
+    disp("Reprojection error after refinment: " + err);
 end

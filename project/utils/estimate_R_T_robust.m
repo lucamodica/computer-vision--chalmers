@@ -69,7 +69,7 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
                 % disp("new best inliers count is from E: " + bestInlCountE);
 
                 % extract R and T from E
-                [P, X_E_curr] = find_best_P2(E, x1, x2, P1, K, inliers);
+                [P, X_E_curr] = find_best_P2(E, x1, x2, P1, inliers);
 
                 % update the values if the essential matrix
                 % is acceptable
@@ -132,7 +132,7 @@ function [best_R, best_T, best_inliers, best_X] = estimate_R_T_robust(K, x1, x2,
                 end
     
                 % extract R and T from E
-                [P, X_H_curr] = find_best_P2(bestE, x1, x2, P1, K, inlBestE);
+                [P, X_H_curr] = find_best_P2(bestE, x1, x2, P1, inlBestE);
 
                 % if the camera is an eligible one,
                 % R, T and the epsilon will be updated
