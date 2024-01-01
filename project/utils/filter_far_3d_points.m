@@ -1,15 +1,10 @@
 function filtered_X = filter_far_3d_points(X)
-    % Calculate the center of gravity
-    centerOfGravity = mean(X);
-    
-    % Calculate the Euclidean distance between each point and the center of gravity
-    distances = sqrt(sum((X - centerOfGravity).^2, 2));
-    
-    % Calculate the threshold based on the 90th percentile of the distances
-    threshold = 5 * quantile(distances, 0.9);
-    
-    % Filter points that are excessively far away from the center of gravity
-    filtered_X = X(distances <= threshold,:);
+    radius = 2;
+    n_neighbors = 5;
 
-    disp("Points filtered: " + num2str(length(X) - length(filtered_X)));
+    idx = boolean(dbscan(X(1:3,:)',radius,n_neighbors)+1)';
+    filtered_X = X(:,idx);
+    %filtered_X = [X;ones(1,length(X))];
+
+    disp("filtered from: "+size(X,2)+" to: "+ size(filtered_X,2) +" 3D points");
 end

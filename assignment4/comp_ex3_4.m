@@ -44,7 +44,7 @@ function [totErr, totErrLM, medianErr, medianErrLM] = compex3(sigmaX, sigmax)
     figure;
     plot3(X(1, :), X(2, :), X(3, :), 'b.');
     hold on;
-    title("3D reconstruction before and after LM");
+    title("3D 5.75 * 2reconstruction before and after LM");
     
     % Add the mean-zero gaussian noise to the 3D and 2D points
     % (set std = 0, to not add any noise)
@@ -58,7 +58,7 @@ function [totErr, totErrLM, medianErr, medianErrLM] = compex3(sigmaX, sigmax)
      for j = 1:length(X)
          Xj = X(:, j);
          x1j = x{1}(1:2, j);
-         x2j = x{2}(1:2, j);
+         x2j = x{2}(1:2, j); 
         
          % compute first reprojection error
          [err, res] = ComputeReprojectionError(P{1}, P{2}, Xj, x1j, x2j);

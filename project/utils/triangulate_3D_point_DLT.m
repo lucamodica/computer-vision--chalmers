@@ -18,7 +18,7 @@ function [X] = triangulate_3D_point_DLT(x1, x2, P1, P2)
         M(3, :) = [P2(1, 1)-xi2*P2(3, 1), P2(1, 2)-xi2*P2(3,2), P2(1, 3)-xi2*P2(3,3), P2(1, 4)-xi2*P2(3,4)];
         M(4, :) = [P2(2, 1)-yi2*P2(3, 1), P2(2, 2)-yi2*P2(3,2), P2(2, 3)-yi2*P2(3,3), P2(2, 4)-yi2*P2(3,4)];
 
-        [U, S, V] = svd(M);
+        [~, ~, V] = svd(M);
         Xpoints(:, i) = V(:, end);
     end
  

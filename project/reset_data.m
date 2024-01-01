@@ -1,8 +1,8 @@
-function reset_files(dataset)
+function reset_data(dataset)
     % names of the files to delete in order
     % to reset all the computation for a specific
     % dataset (in the current working folder)
-    filePrefixes = {"abs_rotation_", "abs_translation_", "rel_orientation_", "sift_infos_", "init_3D_inls_"};
+    filePrefixes = {"abs_rotation_", "abs_translation_", "rel_orientation_inls_", "sift_infos_", "init_3D_inls_"};
 
     % delete files
     for i = 1:length(filePrefixes)

@@ -4,3 +4,4 @@ function [r, J] = linearize_reproj_error_wrt_T(R, T, x, X)
 
     J = repmat(-eye(2, 3), length(X), 1);
     [~, r] = compute_reprojection_error([R, T], x, X);
+    r = reshape(r, [2 * length(x), 1]);

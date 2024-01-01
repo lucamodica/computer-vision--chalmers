@@ -1,12 +1,11 @@
 function T = refine_T(T_init, R, x, X)
     % init
     T = T_init;
-    iters = 50;
+    iters = 100;
     mu = 0.01;
 
     % compute first reprojection error, among all the points
     err = sum(compute_reprojection_error([R, T], x, X));
-    disp("Initial reprojection error: " + err);
 
     % iteratively refine T
     for i = 1:iters
@@ -22,6 +21,4 @@ function T = refine_T(T_init, R, x, X)
             mu = mu * 10;
         end
     end
-
-    disp("Reprojection error after refinment: " + err);
 end

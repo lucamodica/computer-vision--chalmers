@@ -51,25 +51,26 @@ end
 %% Computing the relative orientations (R and T) for each pair of images (i, i+1)
 disp("Computing the relative orientations (R and T) for each pair of images (i, i+1)...");
 
-if debug_mode && exist("rel_orientation_" + dataset + ".mat", "file")
+if debug_mode && exist("rel_orientation_inls_" + dataset + ".mat", "file")
     load("rel_orientation_" + dataset + ".mat");
     disp("Relative orientations already found and loaded!");
 else
     relRs = cell(1, numImages - 1);
     relTs = cell(1, numImages - 1);
+    inls = cell(1, numImages - 1);
     for i = 1:length(imgs)-1
         % computing and homogenaize point matches between 
         % the pair (i, i+1)
         matches = vl_ubcmatch(descs{i},descs{i+1});
         xa = feats{i}(1:2, matches(1, :)); 
         xb = feats{i+1}(1:2, matches(2, :));
-        xInit1 = [xa; ones(1, length(xa))];
-        xInit2 = [xb; ones(1, length(xb))];
+        x1 = [xa; ones(1, length(xa))];
+        x2 = [xb; ones(1, length(xb))];
         
         % estimating best R and T of the the P2 camera
-        [relRs{i}, relTs{i}, inls, initX] = estimate_R_T_robust( ...
-            K, xInit1, xInit2, pixel_threshold);
-        initX = filter_far_3d_points(initX);
+        [relRs{i}, relTs{i}, inls{i}, relX] = estimate_R_T_robust( ...
+            K, x1, x2, pixel_threshold);
+        relX = filter_far_3d_points(relX);
     
         % plot the inlier 3D points and the resulting relative camera 
         % for checking the correctness of the current relative 
@@ -78,7 +79,7 @@ else
             P1 = [eye(3, 3), zeros(3, 1)];
             P2 = [relRs{i}, relTs{i}];
             figure;
-            plot3(initX(1, :), initX(2, :), initX(3, :), 'b.');
+            plot3(relX(1, :), relX(2, :), relX(3, :), 'b.');
             hold on;
             grid on;
             axis equal;
@@ -91,7 +92,7 @@ else
             disp("Relative oriantation between camera " + i + " and " + num2str(i+1) + " computed!");
         end
     end
-    save("rel_orientation_" + dataset, "relRs", "relTs");
+    save("rel_orientation_inls_" + dataset, "relRs", "relTs", "inls");
     disp("done!");
 end
 %%
@@ -130,23 +131,23 @@ else
     initMatches = vl_ubcmatch(dInit1,dInit2);
     xa = fInit1(1:2, initMatches(1, :)); 
     xb = fInit2(1:2, initMatches(2, :));
-    xInit1 = [xa; ones(1, length(xa))];
-    xInit2 = [xb; ones(1, length(xb))];
+    x1 = [xa; ones(1, length(xa))];
+    x2 = [xb; ones(1, length(xb))];
     % calculate relative orientation for the initial pair alongside
     % the initial inliers 3D points
-    [~, ~, initInlIdx, initX] = estimate_R_T_robust( ...
-        K, xInit1, xInit2, pixel_threshold);
+    [~, ~, initInlIdx, relX] = estimate_R_T_robust( ...
+        K, x1, x2, pixel_threshold);
     % Filter 3D points excessively far away from the center of gravity and
     % bring X to world coordinates and filter out the outliers
-    initX = filter_far_3d_points(absRs{init_pair(1)}.' * initX(1:3, :));
-    initX = [initX; ones(1, length(initX))];
+    relX = filter_far_3d_points(absRs{init_pair(1)}.' * relX(1:3, :));
+    relX = [relX; ones(1, length(relX))];
 
-    save("init_3D_inls_" + dataset, "initX", "initInlIdx");
+    save("init_3D_inls_" + dataset, "relX", "initInlIdx");
     disp("done!");
 end
 %%
 
-%% Compute absolute rotation for each image with translation registration
+%% Compute absolute translation for each image with translation registration
 disp("Compute robustly the absolute trnaslation for each image with " + ...
     "translation registration and the initial 3D points...");
 if debug_mode && exist("abs_translation_" + dataset + ".mat", "file")
@@ -167,7 +168,7 @@ else
         % This assumes that 'inliersInitial' is aligned with 
         % 'initial3DPoints' indices
         [~, loc] = ismember(inlierMatches(2, :), inliersIdx);
-        corrX = initX(:, loc);
+        corrX = relX(:, loc);
         % Remove any zeros that might have crept in due to non-inliers
         corrX = corrX(:, all(corrX));
         xi = feats{i}(1:2, inlierMatches(1, :));
@@ -190,7 +191,7 @@ Ps = cellfun(@(R, T) [R, T], absRs, absTs, 'UniformOutput', false);
 
 %% test plotting init 3d points and all the cameras
 figure;
-plot3(initX(1, :), initX(2, :), initX(3, :), 'b.');
+plot3(relX(1, :), relX(2, :), relX(3, :), 'b.');
 grid on;
 hold on;
 axis equal;
@@ -199,12 +200,52 @@ for i = 1:length(Ps)
     [C1, ~] = plot_camera(P, 0.5);
     text(C1(1), C1(2), C1(3), "C" + num2str(i), 'FontSize', 12, 'HorizontalAlignment', 'right');
 end
+title("3D plot with the initial 3D points of the model");
 %%
 
-%% Triangulate points for all pairs (i, i+1) 
+%% Triangulate points for all pairs (i, i+1)
+disp("Triangulating 3D points for each pair of cameras (i, i+1)...");
+Xs = cell(1, numImages-1);
+xs = cell(1, numImages-1);
+for i = 1:numImages-1
+    matches = vl_ubcmatch(descs{i},descs{i+1});
+    xa = feats{i}(1:2, matches(1, :)); 
+    xb = feats{i+1}(1:2, matches(2, :));
+    x1 = [xa(:, inls{i}); ones(1, sum(inls{i}))];
+    x2 = [xb(:, inls{i}); ones(1, sum(inls{i}))];
+
+    Xi = triangulate_3D_point_DLT(K \ x1, K \ x2, Ps{i}, Ps{i+1});
+    Xs{i} = [absRs{i}.' * Xi(1:3, :) + abressTs{i}; ones(1, length(Xi))];
+
+    disp("3D points triangulated for the cameras (" + i + ", " + ...
+        num2str(i+1) + ")!");
+end
+disp("done!");
+%%
+
+%% merge the point clouds and refining the final result
+% concatenating all 3D points clouds into a single array
+X = cell2mat(arrayfun(@(x) x{:}, Xs, 'UniformOutput', false));
+
+% refine all the 2D points with LM
+X = refine_3D_points(X, Ps(1:numImages-1), x);
+
+% remove far 3D points
+X = filter_far_3d_points(X);
 %%
 
 %% Visualize 3D points + cameras
+figure;
+plot3(X(1, :), X(2, :), X(3, :), 'b.');
+grid on;
+hold on;
+axis equal;
+for i = 1:length(Ps)
+    P = K * Ps{i};
+    [C1, ~] = plot_camera(P, 1);
+    text(C1(1), C1(2), C1(3), "C" + num2str(i), 'FontSize', 12, 'HorizontalAlignment', 'right');
+end
+title("3D plot with all 3D points of the model");
 %%
 
 
